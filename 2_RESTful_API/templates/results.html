@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Weather Results</title>
+</head>
+
+<body>
+    <h1>Results:</h1>
+    <p><strong>City:</strong> {{ city }}</p>
+    <p><strong>Temperature from OpenWeather:</strong> {{ temperature_1 }} °C</p>
+    <p><strong>Temperature from WeatherAPI:</strong> {{ temperature_2 }} °C</p>
+    <p><strong>Temperature from Tomorrow.io:</strong> {{ temperature_3 }} °C</p>
+    <p><strong>Average temperature</strong>: {{ avg_temperature }} °C</p>
+    <p><strong>Max temperature:</strong> {{ max_temperature }} °C</p>
+    <p><strong>Min temperature:</strong> {{ min_temperature }} °C</p>
+    <p><strong>Max difference between temperatures:</strong> {{ diff_temperature }} °C</p>
+</body>
+
+<a href="/">Check another city</a>
+
+</html>
