@@ -41,5 +41,6 @@ This is the homepage of the application, where you can enter a city name.
 This endpoint is used to fetch temperature data from the three weather APIs for the specified city and display it in a
 results page. Then values are compared between each other.
 
-Credits
-This application was created by Szymon Budziak.
+#### Credits
+
+This project was created by Szymon Budziak.
