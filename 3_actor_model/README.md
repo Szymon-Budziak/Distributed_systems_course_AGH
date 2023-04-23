@@ -34,6 +34,23 @@ The file contains the following:
 5. Modifying the invoke method of the actor to return a random integer value between 5 and 25.
 6. Demonstrating parallel computation of pi using a combination of actor and task.
 
+## Running docker
+
+To run docker, you have to follow these steps:
+
+1. Create .env file with WORKDIR=/path/to/your/project argument
+2. Run and replace *your-image-name* with your image name
+
+```bash
+docker build --build-arg WORKDIR=$(cut -d '=' -f 2 .env) -t your-image-name .
+```
+
+3. Run and replace *your-image-name* with your image name
+
+```bash
+docker run your-image-name
+```
+
 #### Credits
 
 This project was created by Szymon Budziak.
