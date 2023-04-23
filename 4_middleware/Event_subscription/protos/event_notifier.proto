@@ -1,0 +1,77 @@
+syntax = "proto3";
+
+package event_notifier;
+
+service EventNotifier {
+    // create default events
+    rpc CreateDefaultEvents (DefaultEventsRequest) returns (stream DefaultEventsResponse) {}
+
+    // subscribe to one event by number
+    rpc SubscribeOneEventById (SubscribeOneEventByIdRequest) returns (SubscribeOneEventByIdResponse) {}
+
+    // subscribe to events by type
+    rpc SubscribeEventsByType (SubscribeEventsByTypeRequest) returns (SubscribeEventsByTypeResponse) {}
+
+    // subscribe to all events
+    rpc SubscribeAllEvents (SubscribeAllEventsRequest) returns (stream SubscribeAllEventsResponse) {}
+}
+
+// default events
+message DefaultEventsRequest {
+    int32 num_of_events = 1;
+}
+
+message DefaultEventsResponse {
+    repeated Event events_list = 1;
+    int32 num_of_events = 2;
+}
+
+// subscribe to one event by number
+message SubscribeOneEventByIdRequest {
+    string name = 1;
+    string event_id = 2;
+    repeated Event events_list = 3;
+}
+
+message SubscribeOneEventByIdResponse {
+    Event event = 1;
+    string text = 2;
+}
+
+// subscribe to events by type
+message SubscribeEventsByTypeRequest {
+    string name = 1;
+    EventType event_type = 2;
+    repeated Event events_list = 3;
+}
+
+message SubscribeEventsByTypeResponse {
+    repeated Event events_list = 1;
+    string text = 2;
+}
+
+// subscribe to all events
+message SubscribeAllEventsRequest {
+    string name = 1;
+    repeated Event events_list = 3;
+}
+
+message SubscribeAllEventsResponse {
+    repeated Event events_list = 1;
+    string text = 2;
+}
+
+// event
+message Event {
+    string event_id = 1;
+    EventType type = 2;
+    repeated string attendees = 3;
+    int32 max_attendees = 4;
+}
+
+enum EventType {
+    MEETING = 0;
+    CONFERENCE = 1;
+    FESTIVAL = 2;
+    SPORTS = 3;
+}
