@@ -1,0 +1,11 @@
+version: "3.10"
+services:
+  ray-lab-1:
+    build: ./
+    command: python3 ./ray-lab-1-task.py
+  ray-lab-2:
+    build: ./
+    command: python3 ./ray-lab-2-objects.py
+  ray-lab-3:
+    build: ./
+    command: sh -c "ray start --head && python3 ./ray-lab-3-actors.py"

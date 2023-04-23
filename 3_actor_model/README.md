@@ -51,6 +51,12 @@ docker build --build-arg WORKDIR=$(cut -d '=' -f 2 .env) -t your-image-name .
 docker run your-image-name
 ```
 
+4. Run docker compose up:
+
+```bash
+docker compose up
+```
+
 #### Credits
 
 This project was created by Szymon Budziak.
