@@ -10,7 +10,7 @@ service EventNotifier {
     rpc SubscribeOneEventById (SubscribeOneEventByIdRequest) returns (SubscribeOneEventByIdResponse) {}
 
     // subscribe to events by type
-    rpc SubscribeEventsByType (SubscribeEventsByTypeRequest) returns (SubscribeEventsByTypeResponse) {}
+    rpc SubscribeEventsByType (SubscribeEventsByTypeRequest) returns (stream SubscribeEventsByTypeResponse) {}
 
     // subscribe to all events
     rpc SubscribeAllEvents (SubscribeAllEventsRequest) returns (stream SubscribeAllEventsResponse) {}
