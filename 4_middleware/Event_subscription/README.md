@@ -21,7 +21,7 @@ purposes.
 ### protos
 
 Inside protos folder there is **event_notifier.proto** file that is a protobuf code for an event notifier service. The
-service provides several RPCs, including creating default events, subscribing to events by number, subscribing to events
+service provides several gRPCs, including creating default events, subscribing to events by number, subscribing to events
 by type, and subscribing to all events. The code also includes several message types, such as DefaultEventsRequest,
 SubscribeOneEventByIdRequest, SubscribeEventsByTypeRequest, and Event. Additionally, the code includes an enum,
 EventType, which lists the different types of events available.
