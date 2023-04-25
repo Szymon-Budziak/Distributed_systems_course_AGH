@@ -1,9 +1,11 @@
-from concurrent import futures
-import logging
 import grpc
-import event_notifier_pb2, event_notifier_pb2_grpc
-from random import randint, choice
+import logging
 import time
+from concurrent import futures
+from random import randint, choice
+
+import event_notifier_pb2
+import event_notifier_pb2_grpc
 
 TEXT = {
     "full": "There is already to many attendees. Try different event.",
@@ -20,7 +22,7 @@ class EventServer(event_notifier_pb2_grpc.EventNotifierServicer):
                 event_id=f'{i}',
                 type=choice(list(event_notifier_pb2.EventType.values())),
                 attendees=["Admin"],
-                max_attendees=randint(1, 3)))
+                max_attendees=randint(1, 8)))
         time.sleep(3)
         yield event_notifier_pb2.DefaultEventsResponse(events_list=events, num_of_events=len(events))
 
@@ -28,8 +30,10 @@ class EventServer(event_notifier_pb2_grpc.EventNotifierServicer):
         for event in request.events_list:
             if event.event_id == request.event_id:
                 if event.max_attendees <= len(event.attendees):
+                    time.sleep(2)
                     return event_notifier_pb2.SubscribeOneEventByIdResponse(event=event, text=TEXT["full"])
                 event.attendees.append(request.name)
+                time.sleep(2)
                 return event_notifier_pb2.SubscribeOneEventByIdResponse(event=event, text=TEXT["success"])
         time.sleep(2)
         return event_notifier_pb2.SubscribeOneEventByIdResponse(event=None, text=TEXT["not_found"])
@@ -39,10 +43,9 @@ class EventServer(event_notifier_pb2_grpc.EventNotifierServicer):
         for event in request.events_list:
             if event.type == request.event_type:
                 if event.max_attendees <= len(event.attendees):
-                    yield event_notifier_pb2.SubscribeEventsByTypeResponse(events_list=events, text=TEXT["full"])
-                else:
-                    event.attendees.append(request.name)
-                    events.append(event)
+                    continue
+                event.attendees.append(request.name)
+                events.append(event)
         time.sleep(2)
         if len(events) > 0:
             yield event_notifier_pb2.SubscribeEventsByTypeResponse(events_list=events, text=TEXT["success"])
@@ -53,10 +56,9 @@ class EventServer(event_notifier_pb2_grpc.EventNotifierServicer):
         events = []
         for event in request.events_list:
             if event.max_attendees <= len(event.attendees):
-                yield event_notifier_pb2.SubscribeAllEventsResponse(events_list=events, text=TEXT["full"])
-            else:
-                event.attendees.append(request.name)
-                events.append(event)
+                continue
+            event.attendees.append(request.name)
+            events.append(event)
         time.sleep(2)
         if len(events) > 0:
             yield event_notifier_pb2.SubscribeAllEventsResponse(events_list=events, text=TEXT["success"])
