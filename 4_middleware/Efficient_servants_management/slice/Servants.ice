@@ -7,4 +7,3 @@ module Demo {
         void ping();
     };
 };
-
