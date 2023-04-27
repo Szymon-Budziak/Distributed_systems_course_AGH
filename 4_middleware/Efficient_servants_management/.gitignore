@@ -165,6 +165,7 @@ dist
 *.app
 
 # Ice files
-client/servants.js
-server/servants.cpp
-server/servants.h
+
+client/Servants.js
+server/Servants.cpp
+server/Servants.h
