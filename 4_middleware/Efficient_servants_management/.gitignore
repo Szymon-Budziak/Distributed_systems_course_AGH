@@ -169,3 +169,4 @@ dist
 client/Servants.js
 server/Servants.cpp
 server/Servants.h
+server/server
