@@ -43,6 +43,7 @@ function getInputs(client, clientId, clientName) {
                             console.log(`Event id ${event.event_id} of type ${EventType[event.type]} with ${Object.keys(event.attendees).length} attendees and max attendees ${event.max_attendees}.`);
                         }
                     }
+
                     getInputs(client, clientId, clientName);
                 });
             });
@@ -57,14 +58,15 @@ function getInputs(client, clientId, clientName) {
                 const stream = client.subscribeEventsByType(request);
 
                 stream.on('data', function (events) {
+                    for (let event of events.subscribed_events) {
+                        console.log(`${events.text} Event id ${event.event_id} of type ${EventType[event.type]}.`)
+                    }
                     for (let event of events.events_list) {
-                        console.log(`${events.text} Event id ${event.event_id} of type ${EventType[event.type]}.`);
                         console.log(`Event id ${event.event_id} of type ${EventType[event.type]} with ${Object.keys(event.attendees).length} attendees and max attendees ${event.max_attendees}.`);
-
                     }
                 });
 
-                stream.on('end', function (events) {
+                stream.on('end', function () {
                     getInputs(client, clientId, clientName);
                 });
             });
@@ -76,17 +78,15 @@ function getInputs(client, clientId, clientName) {
             const stream = client.subscribeAllEvents(request);
 
             stream.on('data', function (events) {
+                for (let event of events.subscribed_events) {
+                    console.log(`${events.text} Event id ${event.event_id} of type ${EventType[event.type]}.`)
+                }
                 for (let event of events.events_list) {
-                    console.log(`${events.text} Event id ${event.event_id} of type ${EventType[event.type]}.`);
-                        console.log(`Event id ${event.event_id} of type ${EventType[event.type]} with ${Object.keys(event.attendees).length} attendees and max attendees ${event.max_attendees}.`);
-
+                    console.log(`Event id ${event.event_id} of type ${EventType[event.type]} with ${Object.keys(event.attendees).length} attendees and max attendees ${event.max_attendees}.`);
                 }
             });
 
             stream.on('end', function () {
-                for (let event of allEvents) {
-                    console.log(`Event id ${event.event_id} of type ${EventType[event.type]} with ${event.attendees.length} attendees and max attendees ${event.max_attendees}.`);
-                }
                 getInputs(client, clientId, clientName);
             });
         } else if (choice.toLowerCase() === 'done') {
@@ -100,7 +100,14 @@ function getInputs(client, clientId, clientName) {
 }
 
 function main() {
-    const client = new eventProto.EventNotifier('localhost:50051', grpc.credentials.createInsecure());
+    const options = {
+        'grpc.keepalive_time_ms': 10000,
+        'grpc.keepalive_timeout_ms': 5000,
+        'grpc.keepalive_permit_without_calls': 1,
+        'grpc.http2_max_pings_without_data': 0,
+        'grpc.http2_min_sent_ping_interval_without_data_ms': 10000,
+    }
+    const client = new eventProto.EventNotifier('localhost:50051', grpc.credentials.createInsecure(), options);
     readline.question('Enter your name: ', function (name) {
         client.onClientConnect({client_name: name}, function (err, response) {
             if (err) console.log(err);
