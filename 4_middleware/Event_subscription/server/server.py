@@ -8,62 +8,93 @@ import event_notifier_pb2
 import event_notifier_pb2_grpc
 
 TEXT = {
-    "full": "There is already to many attendees. Try different event.",
+    "full": "There are to many attendees. Try different event.",
     "success": "You have successfully subscribed to this event.",
+    "already_there": "You are already subscribed to this event.",
     "not_found": "Wrong id. Event has not been found."
 }
 
 
 class EventServer(event_notifier_pb2_grpc.EventNotifierServicer):
-    def CreateDefaultEvents(self, request, context):
-        events = []
-        for i in range(request.num_of_events):
-            events.append(event_notifier_pb2.Event(
-                event_id=f'{i}',
-                type=choice(list(event_notifier_pb2.EventType.values())),
-                attendees=["Admin"],
-                max_attendees=randint(1, 8)))
-        time.sleep(3)
-        yield event_notifier_pb2.DefaultEventsResponse(events_list=events, num_of_events=len(events))
+    events_list = []
+    client_id = 0
+
+    def OnClientConnect(self, request, context):
+        EventServer.client_id += 1
+        print(f"Welcome client {request.client_name}! Your id is {EventServer.client_id}.")
+        return event_notifier_pb2.OnClientConnectResponse(events_list=EventServer.events_list,
+                                                          num_of_events=len(EventServer.events_list),
+                                                          client_id=EventServer.client_id)
 
     def SubscribeOneEventById(self, request, context):
-        for event in request.events_list:
+        time.sleep(2)
+        for event in EventServer.events_list:
             if event.event_id == request.event_id:
                 if event.max_attendees <= len(event.attendees):
-                    time.sleep(2)
-                    return event_notifier_pb2.SubscribeOneEventByIdResponse(event=event, text=TEXT["full"])
-                event.attendees.append(request.name)
-                time.sleep(2)
-                return event_notifier_pb2.SubscribeOneEventByIdResponse(event=event, text=TEXT["success"])
-        time.sleep(2)
-        return event_notifier_pb2.SubscribeOneEventByIdResponse(event=None, text=TEXT["not_found"])
+                    return event_notifier_pb2.SubscribeOneEventByIdResponse(events_list=EventServer.events_list,
+                                                                            event=event, text=TEXT["full"])
+                elif request.client_id in event.attendees.keys():
+                    return event_notifier_pb2.SubscribeOneEventByIdResponse(events_list=EventServer.events_list,
+                                                                            event=event, text=TEXT["already_there"])
+                event.attendees[request.client_id] = request.client_name
+                return event_notifier_pb2.SubscribeOneEventByIdResponse(events_list=EventServer.events_list,
+                                                                        event=event, text=TEXT["success"])
+        return event_notifier_pb2.SubscribeOneEventByIdResponse(events_list=EventServer.events_list, event=None,
+                                                                text=TEXT["not_found"])
 
     def SubscribeEventsByType(self, request, context):
-        events = []
-        for event in request.events_list:
+        added = False
+        subscribed_events = []
+        for event in EventServer.events_list:
             if event.type == request.event_type:
                 if event.max_attendees <= len(event.attendees):
                     continue
-                event.attendees.append(request.name)
-                events.append(event)
+                elif request.client_id in event.attendees.keys():
+                    continue
+                event.attendees[request.client_id] = request.client_name
+                subscribed_events.append(event)
+                added = True
         time.sleep(2)
-        if len(events) > 0:
-            yield event_notifier_pb2.SubscribeEventsByTypeResponse(events_list=events, text=TEXT["success"])
+        if added:
+            yield event_notifier_pb2.SubscribeEventsByTypeResponse(events_list=EventServer.events_list,
+                                                                   subscribed_events=subscribed_events,
+                                                                   text=TEXT["success"])
         else:
-            yield event_notifier_pb2.SubscribeEventsByTypeResponse(events_list=events, text=TEXT["not_found"])
+            yield event_notifier_pb2.SubscribeEventsByTypeResponse(events_list=EventServer.events_list,
+                                                                   subscribed_events=subscribed_events,
+                                                                   text=TEXT["not_found"])
 
     def SubscribeAllEvents(self, request, context):
-        events = []
-        for event in request.events_list:
+        added = False
+        subscribed_events = []
+        for event in EventServer.events_list:
             if event.max_attendees <= len(event.attendees):
                 continue
-            event.attendees.append(request.name)
-            events.append(event)
+            elif request.client_id in event.attendees.keys():
+                continue
+            event.attendees[request.client_id] = request.client_name
+            subscribed_events.append(event)
+            added = True
         time.sleep(2)
-        if len(events) > 0:
-            yield event_notifier_pb2.SubscribeAllEventsResponse(events_list=events, text=TEXT["success"])
+        if added:
+            yield event_notifier_pb2.SubscribeAllEventsResponse(events_list=EventServer.events_list,
+                                                                subscribed_events=subscribed_events,
+                                                                text=TEXT["success"])
         else:
-            yield event_notifier_pb2.SubscribeAllEventsResponse(events_list=events, text=TEXT["not_found"])
+            yield event_notifier_pb2.SubscribeAllEventsResponse(events_list=EventServer.events_list,
+                                                                subscribed_events=subscribed_events,
+                                                                text=TEXT["not_found"])
+
+
+def create_default_events(nm_of_events):
+    for i in range(nm_of_events):
+        event = event_notifier_pb2.Event(
+            event_id=str(i),
+            type=choice(list(event_notifier_pb2.EventType.values())),
+            attendees={0: "Admin"},
+            max_attendees=randint(1, 8))
+        EventServer.events_list.append(event)
+    time.sleep(3)
 
 
 def serve():
@@ -73,6 +104,9 @@ def serve():
     server.add_insecure_port('[::]:' + port)
     server.start()
     print("Server started, listening on " + port)
+
+    create_default_events(3)
+
     server.wait_for_termination()
 
 
