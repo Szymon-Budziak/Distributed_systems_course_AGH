@@ -22,6 +22,7 @@ class EventServer(event_notifier_pb2_grpc.EventNotifierServicer):
     def OnClientConnect(self, request, context):
         EventServer.client_id += 1
         print(f"Welcome client {request.client_name}! Your id is {EventServer.client_id}.")
+        time.sleep(2)
         return event_notifier_pb2.OnClientConnectResponse(events_list=EventServer.events_list,
                                                           num_of_events=len(EventServer.events_list),
                                                           client_id=EventServer.client_id)
@@ -75,7 +76,7 @@ class EventServer(event_notifier_pb2_grpc.EventNotifierServicer):
             event.attendees[request.client_id] = request.client_name
             subscribed_events.append(event)
             added = True
-        time.sleep(2)
+        time.sleep(3)
         if added:
             yield event_notifier_pb2.SubscribeAllEventsResponse(events_list=EventServer.events_list,
                                                                 subscribed_events=subscribed_events,
@@ -87,6 +88,7 @@ class EventServer(event_notifier_pb2_grpc.EventNotifierServicer):
 
 
 def create_default_events(nm_of_events):
+    time.sleep(3)
     for i in range(nm_of_events):
         event = event_notifier_pb2.Event(
             event_id=str(i),
