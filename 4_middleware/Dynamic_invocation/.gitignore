@@ -57,3 +57,8 @@ replay_pid*
 *.exe
 *.out
 *.app
+
+# Project files
+src/sr/ice/server/server
+src/sr/ice/server/calculator.cpp
+src/sr/ice/server/calculator.h
