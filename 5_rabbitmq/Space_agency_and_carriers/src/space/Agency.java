@@ -41,7 +41,7 @@ public class Agency extends Communicator {
         try {
             BufferedReader br = new BufferedReader(new java.io.InputStreamReader(System.in));
 
-            System.out.print("Accepting messages. Enter your message: ");
+            System.out.print("Accepting messages. Enter your message (person/cargo/satellite): ");
             String message;
             while ((message = br.readLine()) != null) {
                 if (!message.equals("person") && !message.equals("cargo") && !message.equals("satellite")) {
@@ -53,7 +53,7 @@ public class Agency extends Communicator {
 
                 System.out.println("Sending job to key `" + job.getCapability() + "`");
                 channel.basicPublish("globalExchange", job.getCapability(), null, job.toString().getBytes());
-                System.out.print("Accepting messages. Enter your message: ");
+                System.out.println("Accepting messages. Enter your message (person/cargo/satellite): ");
             }
 
         } catch (IOException e) {
