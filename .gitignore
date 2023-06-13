@@ -3,3 +3,4 @@
 4_middleware/Thrift
 4_middleware/gRPC
 5_rabbitmq/Lab
+6_zookeeper/Lab
