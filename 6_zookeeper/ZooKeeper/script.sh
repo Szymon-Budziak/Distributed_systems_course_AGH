@@ -6,5 +6,5 @@ fi
 
 while true; do
     echo "Hello $$" >> logfile.txt
-    sleep 3
+    sleep 2
 done
