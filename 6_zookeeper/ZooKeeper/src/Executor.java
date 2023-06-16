@@ -27,7 +27,7 @@ public class Executor implements Watcher {
 
     public static void main(String[] args) {
         if (args.length < 2) {
-            System.err.println("Wrong number of arguments. USAGE: Executor <connectionString> program [args ...]");
+            System.err.println("Wrong number of arguments. USAGE: Executor <connectionString> program [args ...].");
             System.exit(1);
         }
         String connectionString = args[0];
@@ -38,7 +38,7 @@ public class Executor implements Watcher {
         Executor executor = new Executor(connectionString, watchFileName, exec);
 
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        System.out.println("Executor ready. Press any key to see the list of nodes under z.");
+        System.out.println("Executor ready. Press any key to see the list of nodes under `z`.");
         while (true) {
             try {
                 br.readLine();

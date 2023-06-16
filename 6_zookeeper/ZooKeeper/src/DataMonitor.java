@@ -47,7 +47,7 @@ public class DataMonitor implements AsyncCallback.StatCallback, AsyncCallback.Ch
         if (sum != this.lastSum) {
             this.lastSum = sum;
             if (rc == KeeperException.Code.OK.intValue()) {
-                System.out.println("Changed child of z node. There are: " + (sum - 1) + " children now.");
+                System.out.println("Changed child of `z` node. There are: " + (sum - 1) + " children now.");
             }
         }
     }
@@ -56,7 +56,7 @@ public class DataMonitor implements AsyncCallback.StatCallback, AsyncCallback.Ch
     public void processResult(int rc, String path, Object ctx, Stat stat) {
         if (rc == KeeperException.Code.OK.intValue()) {
             if (this.process == null) {
-                System.out.println("Added z node. Starting program.");
+                System.out.println("Added `z` node. Starting program.");
                 this.zk.getChildren(this.watchFileName, true, this, null);
 
                 ProcessBuilder pb = new ProcessBuilder();
@@ -71,12 +71,12 @@ public class DataMonitor implements AsyncCallback.StatCallback, AsyncCallback.Ch
             }
         } else if (rc == KeeperException.Code.NONODE.intValue()) {
             if (this.process != null) {
-                System.out.println("Deleted z node. Stopping program.");
+                System.out.println("Deleted `z` node. Stopping program.");
                 this.process.destroy();
                 this.process = null;
             }
         } else
-            System.err.println("Exception detected" + rc);
+            System.err.println("Exception detected " + rc);
 
         this.zk.exists(this.watchFileName, true, this, null);
     }
