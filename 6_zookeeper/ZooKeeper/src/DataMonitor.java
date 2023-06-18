@@ -3,25 +3,30 @@ import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.data.Stat;
 
-import java.io.IOException;
+import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.List;
 
 public class DataMonitor implements AsyncCallback.StatCallback, AsyncCallback.Children2Callback {
     private final ZooKeeper zk;
-    private final String watchFileName;
-    private final String[] exec;
+    private final String znode;
     private int lastSum = -1;
-    private Process process = null;
+    private boolean guiOpened = false;
+    private JFrame frame;
+    private JLabel numberOfChildrenLabel;
+    private int currentY;
+    private final List<JLabel> childLabels = new ArrayList<>();
 
-    public DataMonitor(ZooKeeper zk, String watchFileName, String[] exec) {
+    public DataMonitor(ZooKeeper zk, String znode) {
         this.zk = zk;
-        this.watchFileName = watchFileName;
-        this.exec = exec;
+        this.znode = znode;
     }
 
     public void startWatch() {
-        zk.exists(this.watchFileName, true, this, null);
-        this.subscribeChildrenAndGetCount(this.watchFileName);
+        this.zk.exists(this.znode, true, this, null);
+        subscribeChildrenAndGetCount(this.znode);
     }
 
     private int subscribeChildrenAndGetCount(String childrenName) {
@@ -31,7 +36,7 @@ public class DataMonitor implements AsyncCallback.StatCallback, AsyncCallback.Ch
         try {
             List<String> children = this.zk.getChildren(childrenName, false);
             for (String child : children) {
-                sum += this.subscribeChildrenAndGetCount(childrenName + "/" + child);
+                sum += subscribeChildrenAndGetCount(childrenName + "/" + child);
             }
         } catch (KeeperException.NoNodeException e) {
             //
@@ -43,11 +48,12 @@ public class DataMonitor implements AsyncCallback.StatCallback, AsyncCallback.Ch
 
     @Override
     public void processResult(int rc, String path, Object ctx, List<String> list, Stat stat) {
-        int sum = this.subscribeChildrenAndGetCount(this.watchFileName);
+        int sum = subscribeChildrenAndGetCount(this.znode);
         if (sum != this.lastSum) {
             this.lastSum = sum;
             if (rc == KeeperException.Code.OK.intValue()) {
                 System.out.println("Changed child of `z` node. There are: " + (sum - 1) + " children now.");
+                this.numberOfChildrenLabel.setText("Current number of children: " + (sum - 1));
             }
         }
     }
@@ -55,29 +61,81 @@ public class DataMonitor implements AsyncCallback.StatCallback, AsyncCallback.Ch
     @Override
     public void processResult(int rc, String path, Object ctx, Stat stat) {
         if (rc == KeeperException.Code.OK.intValue()) {
-            if (this.process == null) {
-                System.out.println("Added `z` node. Starting program.");
-                this.zk.getChildren(this.watchFileName, true, this, null);
+            if (!this.guiOpened) {
+                System.out.println("Added `z` node. Opening GUI.");
+                this.zk.getChildren(this.znode, true, this, null);
 
-                ProcessBuilder pb = new ProcessBuilder();
-                pb.command(this.exec);
+                this.frame = new JFrame("My GUI");
+                this.frame.setLayout(null);
 
-                try {
-                    this.process = pb.start();
-                } catch (IOException e) {
-                    System.err.println("Error when starting exec script.");
-                    e.printStackTrace();
-                }
+                this.numberOfChildrenLabel = new JLabel("Current number of children: " + (this.lastSum - 1));
+                this.numberOfChildrenLabel.setBounds(20, 20, 200, 30);
+                this.frame.add(this.numberOfChildrenLabel);
+
+                JButton displayChildrenTreeButton = new JButton("Display children tree");
+                displayChildrenTreeButton.setBounds(20, 60, 200, 40);
+                displayChildrenTreeButton.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        displayChildrenTree();
+                    }
+                });
+                this.frame.add(displayChildrenTreeButton);
+
+                this.frame.setSize(700, 500);
+                this.frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+                this.frame.setVisible(true);
+                this.guiOpened = true;
             }
         } else if (rc == KeeperException.Code.NONODE.intValue()) {
-            if (this.process != null) {
-                System.out.println("Deleted `z` node. Stopping program.");
-                this.process.destroy();
-                this.process = null;
+            if (this.guiOpened) {
+                System.out.println("Deleted `z` node. Closing GUI.");
+                this.currentY = 120;
+                this.frame.setVisible(false);
+                this.guiOpened = false;
             }
         } else
             System.err.println("Exception detected " + rc);
 
-        this.zk.exists(this.watchFileName, true, this, null);
+        this.zk.exists(this.znode, true, this, null);
+    }
+
+    private void displayChildrenTree() {
+        try {
+            clearChildLabels();
+            List<String> children = this.zk.getChildren(this.znode, false);
+            System.out.println("Listing children for: " + this.znode);
+
+            this.currentY = 120;
+            printChildren(children, this.znode);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (KeeperException e) {
+            System.out.println("Node does not exist.");
+        }
+    }
+
+    private void printChildren(List<String> children, String base) throws InterruptedException, KeeperException {
+        for (String child : children) {
+            String path = base + "/" + child;
+            System.out.println(path);
+
+            JLabel childLabel = new JLabel(path);
+            childLabel.setBounds(20, this.currentY, 200, 30);
+            this.frame.add(childLabel);
+            this.childLabels.add(childLabel);
+            this.frame.update(this.frame.getGraphics());
+            this.currentY += 20;
+
+            List<String> nestedChildren = this.zk.getChildren(path, false);
+            printChildren(nestedChildren, path);
+        }
+    }
+
+    private void clearChildLabels() {
+        for (JLabel childLabel : this.childLabels) {
+            this.frame.remove(childLabel);
+        }
+        this.childLabels.clear();
     }
 }

@@ -2,8 +2,10 @@
 
 ## Dependencies
 
-- ZooKeeper >= 3.7.0
 - Java 18
+- ZooKeeper >= 3.8.0 (Java library)
+- slf4j >= 1.7.30 (Java library)
+- javafx (Java library)
 - docker-compose
 
 ## Files explanation
@@ -11,26 +13,28 @@
 ### DataMonitor
 
 It implements **AsyncCallback.StatCallback** and **AsyncCallback.Children2Callback** interfaces. It uses the `Apache
-ZooKeeper` library to monitor changes in a specified file in a distributed system. The class starts watching for changes
-by calling the **startWatch()** method, which sets up a watch on the specified file in the ZooKeeper cluster. It also
-subscribes to changes in the children of the file. When changes occur, the **processResult()** methods are called.
+ZooKeeper` library to monitor changes in a specified node (`z` node) in a distributed system. The class starts watching
+for changes by calling the **startWatch()** method. that initiates the monitoring process. The method first checks if
+the znode exists and subscribes to its children's changes using the **subscribeChildrenAndGetCount()** method.
 
-The first method is invoked when the status of the watched file changes, and the second method is called when the
-children of the file change. These methods perform actions based on the changes detected.
+The class also overrides the **processResult()** methods from the callback interfaces to handle events and updates
+related to the znode and its children. When the children of the znode change, the **processResult()** method calculates
+the new count of children and prints a message indicating the change. If the znode is added or deleted, it opens or
+closes a graphical user interface (GUI) respectively. The GUI displays information about the number of children and
+provides a button to display the tree structure of the children.
 
-If the number of children changes, the program prints a message indicating the new count. If a new child is added, it
-starts a program specified by the exec parameter using ProcessBuilder. If a child is deleted, it stops the program.
+The **displayChildrenTree()** method retrieves and displays the children of the znode in a tree-like structure within
+the GUI. The **printChildren()** method recursively prints the children and their nested children, updating the GUI
+accordingly. The **clearChildLabels()** method clears the child labels displayed in the GUI.
+
+If there are any changes detected by the DataMonitor, it prints them to the console and updates the GUI accordingly.
 
 ### Executor
 
 This class implements the **Watcher** interface from the `Apache ZooKeeper` library. It sets up a connection to the
-ZooKeeper cluster and creates an instance of the DataMonitor class to monitor a specified file. The Executor class has a
-main method that takes command-line arguments, including the ZooKeeper connection string, the name of the program to
-execute, and optional arguments. It initializes an Executor instance with the provided arguments and starts listening
-for user input.
-
-When the user presses any key, the **listChildren()** method is called, which retrieves and prints the list of children
-nodes under the specified file in the ZooKeeper cluster.
+ZooKeeper cluster. It initializes a ZooKeeper client with a given connection string and establishes a Watcher to track
+changes to the znode. The Executor class is responsible for creating a DataMonitor and starting its watch. If the
+initialization is successful, it enters into an infinite loop, waiting for events to be processed.
 
 ### docker-compose.yml
 
@@ -57,17 +61,17 @@ zkCli.sh -server localhost:2181
 zkCli.sh -server localhost:2182
 ```
 
-3. Run `main` function of Executor class. Before that pass in IntelliJ `localhost:2181 ./script.sh` to Executor
-   configuration.
+3. Run `main` function of Executor class. Before that pass in IntelliJ `localhost:2181` to Executor configuration.
 
 ## Runtime
 
-- In **Client 1** type: `create /z`
-- In **Client 2** type: `ls /`
-- Check if **script.sh** is running and logging: `tail -f logfile.txt`
-- In **Client 1** type: `create /z/z1` `create /z/z1/z11`
-- In **Executor app** `press any key` to see the tree of z
-- In **Client 1** type: `deleteall /z` to stop the program
+- In **Client 1** type: `create /z` (GUI window should pop up)
+- In **Client 1** type: `create /z/z1` `create /z/z1/z11` `create /z/z2`
+- Notice how in GUI the `Current number of children` is changing while adding new children
+- In **Client 2** type: `ls /z` `ls /z/z1` `ls /z/z2`
+- Click `Display children tree` button and notice that displayed number of children is the same as the sum of children
+  from the previous command
+- In **Client 1** type: `deleteall /z` to close the GUI
 
 #### Credits
 
