@@ -14,8 +14,8 @@
 
 This class implements the **Watcher** interface from the **Apache ZooKeeper** library. The Executor class sets up a
 connection to the ZooKeeper service using a provided connection string and initializes a ZooKeeper object. It has a main
-method that expects two command-line arguments: a connection string and the name of an external application. The *
-*Watcher** interface is implemented, and the process method is overridden to handle various types of events received
+method that expects two command-line arguments: a connection string and the name of an external application. The
+**Watcher** interface is implemented, and the process method is overridden to handle various types of events received
 from ZooKeeper. The process method checks the type of event and the path associated with it and performs specific
 actions based on the event type and path. The code tracks the creation and deletion of a specific znode ("/z") and its
 children. It performs actions such as launching an external graphic application, opening a GUI window, and updating
