@@ -15,7 +15,7 @@ public class Executor implements Watcher {
     private Process externalApplicationProcess = null;
     private JFrame frame;
     private JLabel numberOfChildrenLabel = null;
-    private int currentY;
+    private int currentY = 120;
     private final List<JLabel> childLabels = new ArrayList<>();
 
     public Executor(String connectionString, String externalApplicationName) {
@@ -62,7 +62,7 @@ public class Executor implements Watcher {
             System.out.println("Added `z` node. Opening external graphic application.");
             openExternalGraphicApplication();
         } else if (eventType == Event.EventType.NodeCreated && nodePath.startsWith(ZNODE)) {
-            System.out.println("Created new child of `z` node. Opening GUI.");
+            System.out.println("Created new child of `z` node. Opening GUI if it is not already open.");
             openGUI();
         } else if (eventType == Event.EventType.NodeDeleted && nodePath.equals(ZNODE)) {
             System.out.println("Removed `z` node. Closing external graphic application and GUI.");
@@ -155,8 +155,6 @@ public class Executor implements Watcher {
         try {
             clearChildLabels();
             List<String> children = this.zk.getChildren(ZNODE, false);
-
-            this.currentY = 120;
             printChildren(children, ZNODE);
         } catch (InterruptedException e) {
             e.printStackTrace();

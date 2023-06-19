@@ -10,31 +10,17 @@
 
 ## Files explanation
 
-### DataMonitor
-
-It implements **AsyncCallback.StatCallback** and **AsyncCallback.Children2Callback** interfaces. It uses the `Apache
-ZooKeeper` library to monitor changes in a specified node (`z` node) in a distributed system. The class starts watching
-for changes by calling the **startWatch()** method. that initiates the monitoring process. The method first checks if
-the znode exists and subscribes to its children's changes using the **subscribeChildrenAndGetCount()** method.
-
-The class also overrides the **processResult()** methods from the callback interfaces to handle events and updates
-related to the znode and its children. When the children of the znode change, the **processResult()** method calculates
-the new count of children and prints a message indicating the change. If the znode is added or deleted, it opens or
-closes a graphical user interface (GUI) respectively. The GUI displays information about the number of children and
-provides a button to display the tree structure of the children.
-
-The **displayChildrenTree()** method retrieves and displays the children of the znode in a tree-like structure within
-the GUI. The **printChildren()** method recursively prints the children and their nested children, updating the GUI
-accordingly. The **clearChildLabels()** method clears the child labels displayed in the GUI.
-
-If there are any changes detected by the DataMonitor, it prints them to the console and updates the GUI accordingly.
-
 ### Executor
 
-This class implements the **Watcher** interface from the `Apache ZooKeeper` library. It sets up a connection to the
-ZooKeeper cluster. It initializes a ZooKeeper client with a given connection string and establishes a Watcher to track
-changes to the znode. The Executor class is responsible for creating a DataMonitor and starting its watch. If the
-initialization is successful, it enters into an infinite loop, waiting for events to be processed.
+This class implements the **Watcher** interface from the **Apache ZooKeeper** library. The Executor class sets up a
+connection to the ZooKeeper service using a provided connection string and initializes a ZooKeeper object. It has a main
+method that expects two command-line arguments: a connection string and the name of an external application. The *
+*Watcher** interface is implemented, and the process method is overridden to handle various types of events received
+from ZooKeeper. The process method checks the type of event and the path associated with it and performs specific
+actions based on the event type and path. The code tracks the creation and deletion of a specific znode ("/z") and its
+children. It performs actions such as launching an external graphic application, opening a GUI window, and updating
+labels and child nodes in the GUI based on the events. The code also includes methods for managing the external graphic
+application and GUI, as well as for counting and displaying the tree of child nodes.
 
 ### docker-compose.yml
 
@@ -51,27 +37,23 @@ from [ZooKeeper Docker](https://hub.docker.com/_/zookeeper)
 docker-compose up
 ```
 
-2. Start clients using ZooKeeper CLI:
+2. Start client using ZooKeeper CLI:
 
 ```shell
 zkCli.sh -server localhost:2181
 ```
 
-```shell
-zkCli.sh -server localhost:2182
-```
-
-3. Run `main` function of Executor class. Before that pass in IntelliJ `localhost:2181` to Executor configuration.
+3. Run `main` function of Executor class. Before that pass in IntelliJ `localhost:2181 pinta` to Executor configuration.
 
 ## Runtime
 
-- In **Client 1** type: `create /z` (GUI window should pop up)
-- In **Client 1** type: `create /z/z1` `create /z/z1/z11` `create /z/z2`
+- In **Client** type: `create /z` (external graphic application passed as argument should pop up)
+- In **Client** type: `create /z/z1` (GUI window should pop up)
+- In **Client** type: `create /z/z1/z11` `create /z/z2`
 - Notice how in GUI the `Current number of children` is changing while adding new children
-- In **Client 2** type: `ls /z` `ls /z/z1` `ls /z/z2`
-- Click `Display children tree` button and notice that displayed number of children is the same as the sum of children
-  from the previous command
-- In **Client 1** type: `deleteall /z` to close the GUI
+- Click `Display children tree` button to display children tree (notice that count of children in displayed children
+  tree is the same as in `Current number of children`)
+- In **Client** type: `deleteall /z` to close the external graphic application and GUI
 
 #### Credits
 
