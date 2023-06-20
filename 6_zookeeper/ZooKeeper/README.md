@@ -37,10 +37,18 @@ from [ZooKeeper Docker](https://hub.docker.com/_/zookeeper)
 docker-compose up
 ```
 
-2. Start client using ZooKeeper CLI:
+2. Start 3 clients using ZooKeeper CLI so that replicated ZooKeeper can be tested:
 
 ```shell
 zkCli.sh -server localhost:2181
+```
+
+```shell
+zkCli.sh -server localhost:2182
+```
+
+```shell
+zkCli.sh -server localhost:2183
 ```
 
 3. Run `main` function of Executor class. Before that pass in IntelliJ `localhost:2181 pinta` to Executor configuration.
